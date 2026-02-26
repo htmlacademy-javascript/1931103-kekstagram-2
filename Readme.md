@@ -1,7 +1,7 @@
 # Личный проект «Кекстаграм»
 
-* Студент: [Ксения Евтюхова](https://up.htmlacademy.ru/javascript-individual/2/user/1931103).
-* Наставник: `Неизвестно`.
+* Студент: [Ксения Евтюхова](https://up.htmlacademy.ru/javascript-individual/2/user/1931103)
+* Наставник: Евгений Лепёшкин
 
 ---
 
