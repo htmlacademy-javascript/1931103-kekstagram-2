@@ -1,21 +1,6 @@
-import { getRandomInt } from 'js/util.js';
+import { getRandomInt } from './js/util.js';
 
 const PHOTO_QUANTITY = 25;
-
-const Likes = {
-  MIN: 15,
-  MAX: 200
-};
-
-const Comments = {
-  MIN: 0,
-  MAX: 30
-};
-
-const Avatars = {
-  MIN: 1,
-  MAX: 6
-};
 
 const DESCRIPTIONS = [
   'Теплые лучи утреннего солнца.',
@@ -71,6 +56,21 @@ const NAMES = [
   'Евгения',
   'Николай'
 ];
+
+const Likes = {
+  MIN: 15,
+  MAX: 200
+};
+
+const Comments = {
+  MIN: 0,
+  MAX: 30
+};
+
+const Avatars = {
+  MIN: 1,
+  MAX: 6
+};
 
 
 let commentIdCounter = 1;
