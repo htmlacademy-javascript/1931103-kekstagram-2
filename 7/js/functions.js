@@ -34,3 +34,24 @@ function extractNumber(input) {
 
   return parseInt(digits, 10);
 }
+
+// Задание "Функции возвращаются"
+
+const isMeetingWithinWorkday = (startWork, endWork, startMeeting, duration) => {
+  // Функция для перевода строки "ЧЧ:ММ" в общее количество минут
+  const toMinutes = (timeStr) => {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 60 + minutes;
+  };
+
+  const startWorkMinutes = toMinutes(startWork);
+  const endWorkMinutes = toMinutes(endWork);
+  const startMeetingMinutes = toMinutes(startMeeting);
+  const endMeetingMinutes = startMeetingMinutes + duration;
+
+  // Проверяем, что начало встречи не раньше начала дня
+  // и конец встречи не позже конца дня
+  return startMeetingMinutes >= startWorkMinutes && endMeetingMinutes <= endWorkMinutes;
+};
+
+
