@@ -1,7 +1,7 @@
-import { generatePhotos } from './js/data.js';
+import { generatePhotos } from './data.js';
 
-import 'js/js/util.js';
-import 'js/js/data.js';
+import './util.js';
+import './data.js';
 
 import { renderThumbnails } from './thumbnails.js';
 renderThumbnails(generatePhotos());
