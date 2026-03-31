@@ -7,7 +7,7 @@ const renderThumbnail = (thumbnailData) => {
   const image = thumbnail.querySelector('.picture__img');
   image.src = thumbnailData.url;
   image.alt = thumbnailData.description;
-  thumbnail.querySelector('.picture__likes') = thumbnailData.likes;
+  thumbnail.querySelector('.picture__likes').textContent = thumbnailData.likes;
   thumbnail.querySelector('.picture__comments').textContent = thumbnailData.comments.length;
 
   return thumbnail;
