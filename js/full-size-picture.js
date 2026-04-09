@@ -1,3 +1,5 @@
+import { isEsc } from './util.js';
+
 const COMMENTS_STEP = 5;
 
 const fullSizePictureElement = document.querySelector('.big-picture');
@@ -61,13 +63,12 @@ const onCloseButtonClick = () => {
   //Удаление обработчика с кнопки при закрытии, чтобы не накапливались
   commentsLoader.removeEventListener('click', onCommentsLoaderClick);
 };
-
-function onDocumentKeydown(evt) {
-  if (evt.key === 'Escape') {
+const onDocumentKeydown = (evt) => {
+  if (isEsc(evt)) {
     evt.preventDefault();
     onCloseButtonClick();
   }
-}
+};
 
 //Открытие и заполнение данными
 const openFullSizePicture = (data) => {
