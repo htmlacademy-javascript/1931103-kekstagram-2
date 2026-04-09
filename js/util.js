@@ -1,3 +1,5 @@
 const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
-export { getRandomInt };
+const isEsc = (evt) => evt.key === 'Escape';
+
+export { getRandomInt, isEsc };
