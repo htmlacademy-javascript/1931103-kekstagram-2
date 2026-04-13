@@ -1,5 +1,9 @@
 import { isEsc } from './util.js';
 
+const MAX_HASHTAGS = 5;
+const VALID_SYMBOLS = /^#[a-zа-яё0-9]{1,19}$/i;
+const COMMENT_LENGTH = 140;
+
 const uploadForm = document.querySelector('.img-upload__form');
 const fileInput = uploadForm.querySelector('.img-upload__input');
 const overlay = uploadForm.querySelector('.img-upload__overlay');
@@ -41,9 +45,6 @@ fileInput.addEventListener('change', () => {
 closeButton.addEventListener('click', closeUploadModal);
 
 // Валидация хэштегов
-const MAX_HASHTAGS = 5;
-const VALID_SYMBOLS = /^#[a-zа-яё0-9]{1,19}$/i;
-
 const validateHashtags = (value) => {
   const hashtags = value.trim().toLowerCase().split(/\s+/).filter(Boolean);
 
