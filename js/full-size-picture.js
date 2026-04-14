@@ -63,12 +63,12 @@ const onCloseButtonClick = () => {
   //Удаление обработчика с кнопки при закрытии, чтобы не накапливались
   commentsLoader.removeEventListener('click', onCommentsLoaderClick);
 };
-const onDocumentKeydown = (evt) => {
+function onDocumentKeydown(evt) {
   if (isEsc(evt)) {
     evt.preventDefault();
     onCloseButtonClick();
   }
-};
+}
 
 //Открытие и заполнение данными
 const openFullSizePicture = (data) => {
