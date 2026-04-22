@@ -1,4 +1,6 @@
 import { isEsc } from './util.js';
+import { sendData } from './api.js';
+import { showSuccessMessage, showErrorMessage } from './message.js';
 
 const MAX_HASHTAGS = 5;
 const VALID_SYMBOLS = /^#[a-zа-яё0-9]{1,19}$/i;
@@ -35,7 +37,13 @@ const EFFECTS = {
   },
 };
 
+const submitButtonText = {
+  IDLE: 'Опубликовать',
+  SENDING: 'Опубликовываю...'
+};
+
 const uploadForm = document.querySelector('.img-upload__form');
+const submitButton = uploadForm.querySelector('.img-upload__submit');
 const fileInput = uploadForm.querySelector('.img-upload__input');
 const overlay = uploadForm.querySelector('.img-upload__overlay');
 const closeButton = uploadForm.querySelector('.img-upload__cancel');
@@ -60,12 +68,23 @@ const pristine = new Pristine(uploadForm, {
   errorTextClass: 'img-upload__field-wrapper--error',
 });
 
+const blockSubmitButton = () => {
+  submitButton.disabled = true;
+  submitButton.textContent = submitButtonText.SENDING;
+};
+
+const unblockSubmitButton = () => {
+  submitButton.disabled = false;
+  submitButton.textContent = submitButtonText.IDLE;
+};
+
 // Закрытие формы
 const closeUploadModal = () => {
   overlay.classList.add('hidden');
   document.body.classList.remove('modal-open');
   uploadForm.reset(); // Сбрасывает все поля
   pristine.reset(); // Очищает ошибки валидации
+  resetVisuals(); // Сбрасывает масштаб и фильтры
   document.removeEventListener('keydown', onDocumentKeydown);
 };
 
@@ -84,6 +103,7 @@ fileInput.addEventListener('change', () => {
   document.addEventListener('keydown', onDocumentKeydown);
 });
 
+// Обработчик клика по кнопке 'отмена' (крестик)
 closeButton.addEventListener('click', closeUploadModal);
 
 // Валидация хэштегов
@@ -103,12 +123,25 @@ pristine.addValidator(hashtagInput, validateHashtags, 'Некорректные 
 pristine.addValidator(commentInput, (val) => val.length <= COMMENT_LENGTH, 'Максимум COMMENT_LENGTH символов');
 
 // Отправка формы
-uploadForm.addEventListener('submit', (evt) => {
-  const isValid = pristine.validate();
-  if (!isValid) {
+const setUserFormSubmit = (onSuccess) => {
+  uploadForm.addEventListener('submit', (evt) => {
     evt.preventDefault();
-  }
-});
+
+    const isValid = pristine.validate();
+    if (isValid) {
+      blockSubmitButton();
+      sendData(new FormData(evt.target))
+        .then(() => {
+          onSuccess(); // Закроет форму и сбросит всё (масштаб, фильтры, поля)
+          showSuccessMessage(); // Покажет "Успех"
+        })
+        .catch(() => {
+          showErrorMessage(); // Форма не закрывается, данные сохраняются
+        })
+        .finally(unblockSubmitButton);
+    }
+  });
+};
 
 // Управление масштабом
 const setScale = (value) => {
@@ -164,3 +197,12 @@ effectsList.addEventListener('change', (evt) => {
   updateEffect(evt.target.value);
 });
 
+// Сброс масштаба и фильтров при повторной загрузке изображения
+function resetVisuals() {
+  currentScale = DEFAULT_SCALE; // Сбрасываем переменную масштаба
+  setScale(DEFAULT_SCALE); // Применяем масштаб 100% к картинке и инпуту
+  updateEffect('none'); // Сбрасываем фильтры и скрываем слайдер
+  uploadForm.querySelector('#effect-none').checked = true; //Выбираем радиокнопку 'оригинал' вручную
+}
+
+export { setUserFormSubmit, closeUploadModal };
