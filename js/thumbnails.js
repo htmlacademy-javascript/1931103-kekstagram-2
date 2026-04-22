@@ -3,6 +3,12 @@ import { openFullSizePicture } from './full-size-picture.js';
 const thumbnailsContainer = document.querySelector('.pictures');
 const thumbnailTemplate = document.querySelector('#picture').content.querySelector('.picture');
 
+// Функция для удаления старых фотографий
+const clearThumbnails = () => {
+  const pictures = thumbnailsContainer.querySelectorAll('.picture');
+  pictures.forEach((picture) => picture.remove());
+};
+
 const renderThumbnail = (thumbnailData) => {
   const thumbnail = thumbnailTemplate.cloneNode(true);
   const image = thumbnail.querySelector('.picture__img');
@@ -14,7 +20,6 @@ const renderThumbnail = (thumbnailData) => {
 
   thumbnail.addEventListener('click', (evt) => {
     evt.preventDefault();
-
     openFullSizePicture(thumbnailData);
   });
 
@@ -22,6 +27,7 @@ const renderThumbnail = (thumbnailData) => {
 };
 
 const renderThumbnails = (photos) => {
+  clearThumbnails();
   const thumbnailFragment = document.createDocumentFragment();
 
   photos.forEach((photo) => {
