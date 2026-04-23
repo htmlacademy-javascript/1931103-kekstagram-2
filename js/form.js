@@ -11,6 +11,8 @@ const MIN_SCALE = 25;
 const MAX_SCALE = 100;
 const DEFAULT_SCALE = 100;
 
+const FILE_TYPES = ['jpg', 'jpeg', 'png'];
+
 const EFFECTS = {
   none: {
     range: { min: 0, max: 100 },
@@ -54,6 +56,7 @@ const scaleControlSmaller = document.querySelector('.scale__control--smaller');
 const scaleControlBigger = document.querySelector('.scale__control--bigger');
 const scaleControlValue = document.querySelector('.scale__control--value');
 const imgPreview = document.querySelector('.img-upload__preview img');
+const effectsPreviews = document.querySelectorAll('.effects__preview');
 let currentScale = DEFAULT_SCALE;
 
 const sliderContainer = document.querySelector('.img-upload__effect-level');
@@ -96,11 +99,23 @@ function onDocumentKeydown(evt) {
   }
 }
 
-// Открытие формы при выборе файла
+// Обработчик выбора файла
 fileInput.addEventListener('change', () => {
-  overlay.classList.remove('hidden');
-  document.body.classList.add('modal-open');
-  document.addEventListener('keydown', onDocumentKeydown);
+  const file = fileInput.files[0];
+  const fileName = file.name.toLowerCase();
+  const matches = FILE_TYPES.some((it) => fileName.endsWith(it));
+
+  if (matches) {
+    const url = URL.createObjectURL(file);
+    imgPreview.src = url; // Подставляем фото в главное окно
+    effectsPreviews.forEach((preview) => {
+      preview.style.backgroundImage = `url(${url})`; // Подставляем в маленькие превью эффектов
+    });
+
+    overlay.classList.remove('hidden');
+    document.body.classList.add('modal-open');
+    document.addEventListener('keydown', onDocumentKeydown);
+  }
 });
 
 // Обработчик клика по кнопке 'отмена' (крестик)
