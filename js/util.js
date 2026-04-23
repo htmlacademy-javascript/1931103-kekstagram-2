@@ -15,6 +15,15 @@ const showAlert = () => {
   }, ALERT_SHOW_TIME);
 };
 
-export { getRandomInt, isEsc };
+function debounce(callback, timeoutDelay = 500) {
+  let timeoutId;
 
-export { showAlert };
+  return (...rest) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => callback.apply(this, rest), timeoutDelay);
+  };
+}
+
+export { getRandomInt, isEsc, showAlert, debounce };
+
+
