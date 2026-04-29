@@ -13,12 +13,13 @@ const RENDER_DELAY = 500;
 
 const debouncedRenderThumbnails = debounce(renderThumbnails, RENDER_DELAY);
 
+setUserFormSubmit(closeUploadModal);
+
 getData()
   .then((photos) => {
     renderThumbnails(photos);
     initFilters(photos, (filteredPhotos) => {
       debouncedRenderThumbnails(filteredPhotos);
-      setUserFormSubmit(closeUploadModal);
     });
   })
   .catch(() => {

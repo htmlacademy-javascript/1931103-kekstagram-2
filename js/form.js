@@ -57,12 +57,15 @@ const scaleControlBigger = document.querySelector('.scale__control--bigger');
 const scaleControlValue = document.querySelector('.scale__control--value');
 const imgPreview = document.querySelector('.img-upload__preview img');
 const effectsPreviews = document.querySelectorAll('.effects__preview');
-let currentScale = DEFAULT_SCALE;
 
 const sliderContainer = document.querySelector('.img-upload__effect-level');
 const sliderElement = document.querySelector('.effect-level__slider');
 const effectValueInput = document.querySelector('.effect-level__value');
 const effectsList = document.querySelector('.effects__list');
+
+let currentScale = DEFAULT_SCALE;
+let currentFilter = 'none';
+let currentUnit = '';
 
 // Инициализация Pristine
 const pristine = new Pristine(uploadForm, {
@@ -70,6 +73,22 @@ const pristine = new Pristine(uploadForm, {
   errorTextParent: 'img-upload__field-wrapper',
   errorTextClass: 'img-upload__field-wrapper--error',
 });
+
+// Вспомогательная функция для получения массива хэштегов
+const getHashtags = (value) => value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+
+// Валидаторы
+const validateHashtagSymbols = (value) => getHashtags(value).every((tag) => VALID_SYMBOLS.test(tag));
+const validateHashtagCount = (value) => getHashtags(value).length <= MAX_HASHTAGS;
+const validateHashtagUnique = (value) => {
+  const hashtags = getHashtags(value);
+  return new Set(hashtags).size === hashtags.length;
+};
+
+pristine.addValidator(hashtagInput, validateHashtagSymbols, 'Начинается с #, буквы/цифры, до 20 симв.', 1, true);
+pristine.addValidator(hashtagInput, validateHashtagUnique, 'Хэштеги не должны повторяться', 2, true);
+pristine.addValidator(hashtagInput, validateHashtagCount, `Максимум ${MAX_HASHTAGS} хэштегов`, 3, true);
+pristine.addValidator(commentInput, (val) => val.length <= COMMENT_LENGTH, `Максимум ${COMMENT_LENGTH} символов`);
 
 const blockSubmitButton = () => {
   submitButton.disabled = true;
@@ -79,6 +98,14 @@ const blockSubmitButton = () => {
 const unblockSubmitButton = () => {
   submitButton.disabled = false;
   submitButton.textContent = submitButtonText.IDLE;
+};
+
+const resetVisuals = () => {
+  currentScale = DEFAULT_SCALE;
+  imgPreview.style.transform = `scale(${DEFAULT_SCALE / 100})`;
+  scaleControlValue.value = `${DEFAULT_SCALE}%`;
+  updateEffect('none');
+  uploadForm.querySelector('#effect-none').checked = true;
 };
 
 // Закрытие формы
@@ -121,59 +148,20 @@ fileInput.addEventListener('change', () => {
 // Обработчик клика по кнопке 'отмена' (крестик)
 closeButton.addEventListener('click', closeUploadModal);
 
-// Валидация хэштегов
-const validateHashtags = (value) => {
-  const hashtags = value.trim().toLowerCase().split(/\s+/).filter(Boolean);
-
-  const hasValidCount = hashtags.length <= MAX_HASHTAGS;
-  const hasUniqueHashtags = new Set(hashtags).size === hashtags.length;
-  const hasValidSymbols = hashtags.every((tag) => VALID_SYMBOLS.test(tag));
-
-  return hasValidCount && hasUniqueHashtags && hasValidSymbols;
-};
-
-pristine.addValidator(hashtagInput, validateHashtags, 'Некорректные хэштеги (макс 5, без повторов, начинаются с #)');
-
-// Валидация комментария
-pristine.addValidator(commentInput, (val) => val.length <= COMMENT_LENGTH, 'Максимум COMMENT_LENGTH символов');
-
-// Отправка формы
-const setUserFormSubmit = (onSuccess) => {
-  uploadForm.addEventListener('submit', (evt) => {
-    evt.preventDefault();
-
-    const isValid = pristine.validate();
-    if (isValid) {
-      blockSubmitButton();
-      sendData(new FormData(evt.target))
-        .then(() => {
-          onSuccess(); // Закроет форму и сбросит всё (масштаб, фильтры, поля)
-          showSuccessMessage(); // Покажет "Успех"
-        })
-        .catch(() => {
-          showErrorMessage(); // Форма не закрывается, данные сохраняются
-        })
-        .finally(unblockSubmitButton);
-    }
-  });
-};
-
 // Управление масштабом
-const setScale = (value) => {
-  currentScale = value;
-  scaleControlValue.value = `${value}%`;
-  imgPreview.style.transform = `scale(${value / 100})`;
-};
-
 scaleControlSmaller.addEventListener('click', () => {
   if (currentScale > MIN_SCALE) {
-    setScale(currentScale - SCALE_STEP);
+    currentScale -= SCALE_STEP;
+    imgPreview.style.transform = `scale(${currentScale / 100})`;
+    scaleControlValue.value = `${currentScale}%`;
   }
 });
 
 scaleControlBigger.addEventListener('click', () => {
   if (currentScale < MAX_SCALE) {
-    setScale(currentScale + SCALE_STEP);
+    currentScale += SCALE_STEP;
+    imgPreview.style.transform = `scale(${currentScale / 100})`;
+    scaleControlValue.value = `${currentScale}%`;
   }
 });
 
@@ -183,41 +171,62 @@ noUiSlider.create(sliderElement, {
   start: 100,
   step: 1,
   connect: 'lower',
+  format: {
+    to: (value) => Number.isInteger(value) ? value.toFixed(0) : value.toFixed(1),
+    from: (value) => parseFloat(value),
+  },
 });
 
-const updateEffect = (effect) => {
+sliderElement.noUiSlider.on('update', () => {
+  const value = parseFloat(sliderElement.noUiSlider.get()); // РЕШАЕТ ПРОБЛЕМУ 0.5 vs 0.50
+  effectValueInput.value = value;
+  if (currentFilter !== 'none') {
+    imgPreview.style.filter = `${currentFilter}(${value}${currentUnit})`;
+  }
+});
+
+function updateEffect(effect) {
+  const settings = EFFECTS[effect];
+  currentFilter = settings.filter;
+  currentUnit = settings.unit;
+
   if (effect === 'none') {
     sliderContainer.classList.add('hidden');
     imgPreview.style.filter = 'none';
     effectValueInput.value = '';
-    return;
+  } else {
+    sliderContainer.classList.remove('hidden');
+    sliderElement.noUiSlider.updateOptions({
+      range: settings.range,
+      start: settings.start,
+      step: settings.step,
+    });
   }
-
-  sliderContainer.classList.remove('hidden');
-  const { range, start, step, filter, unit } = EFFECTS[effect];
-
-  sliderElement.noUiSlider.updateOptions({ range, start, step });
-
-  sliderElement.noUiSlider.on('update', () => {
-    const value = sliderElement.noUiSlider.get();
-    effectValueInput.value = value;
-    imgPreview.style.filter = `${filter}(${value}${unit})`;
-  });
-};
-
-// Сброс при старте
-updateEffect('none');
+}
 
 effectsList.addEventListener('change', (evt) => {
   updateEffect(evt.target.value);
 });
 
-// Сброс масштаба и фильтров при повторной загрузке изображения
-function resetVisuals() {
-  currentScale = DEFAULT_SCALE; // Сбрасываем переменную масштаба
-  setScale(DEFAULT_SCALE); // Применяем масштаб 100% к картинке и инпуту
-  updateEffect('none'); // Сбрасываем фильтры и скрываем слайдер
-  uploadForm.querySelector('#effect-none').checked = true; //Выбираем радиокнопку 'оригинал' вручную
-}
+const setUserFormSubmit = (onSuccess) => {
+  uploadForm.addEventListener('submit', (evt) => {
+    evt.preventDefault();
+    if (pristine.validate()) {
+      blockSubmitButton();
+      sendData(new FormData(evt.target))
+        .then(() => {
+          onSuccess();
+          showSuccessMessage();
+        })
+        .catch(() => {
+          showErrorMessage();
+        })
+        .finally(unblockSubmitButton);
+    }
+  });
+};
+
+// Инициализация при загрузке
+updateEffect('none');
 
 export { setUserFormSubmit, closeUploadModal };
