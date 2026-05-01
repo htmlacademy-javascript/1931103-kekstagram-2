@@ -212,13 +212,6 @@ effectsList.addEventListener('change', (evt) => {
   updateEffect(evt.target.value);
 });
 
-const onMessageEscKeydown = (evt) => {
-  if (isEsc(evt)) {
-    evt.stopPropagation();
-  }
-};
-
-
 const setUserFormSubmit = (onSuccess) => {
   uploadForm.addEventListener('submit', (evt) => {
     evt.preventDefault();
