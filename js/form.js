@@ -104,6 +104,7 @@ const resetVisuals = () => {
   currentScale = DEFAULT_SCALE;
   imgPreview.style.transform = `scale(${DEFAULT_SCALE / 100})`;
   scaleControlValue.value = `${DEFAULT_SCALE}%`;
+  scaleControlValue.setAttribute('value', `${DEFAULT_SCALE}%`);
   updateEffect('none');
   uploadForm.querySelector('#effect-none').checked = true;
 };
@@ -118,9 +119,10 @@ const closeUploadModal = () => {
   document.removeEventListener('keydown', onDocumentKeydown);
 };
 
-// Обработчик Esc (не закрывать, если фокус в полях ввода)
+// Обработчик Esc
 function onDocumentKeydown(evt) {
-  if (isEsc(evt) && document.activeElement !== hashtagInput && document.activeElement !== commentInput) {
+  const isErrorMessageOpen = !!document.querySelector('.error');
+  if (isEsc(evt) && !isErrorMessageOpen && document.activeElement !== hashtagInput && document.activeElement !== commentInput) {
     evt.preventDefault();
     closeUploadModal();
   }
@@ -154,6 +156,7 @@ scaleControlSmaller.addEventListener('click', () => {
     currentScale -= SCALE_STEP;
     imgPreview.style.transform = `scale(${currentScale / 100})`;
     scaleControlValue.value = `${currentScale}%`;
+    scaleControlValue.setAttribute('value', `${currentScale}%`);
   }
 });
 
@@ -162,6 +165,7 @@ scaleControlBigger.addEventListener('click', () => {
     currentScale += SCALE_STEP;
     imgPreview.style.transform = `scale(${currentScale / 100})`;
     scaleControlValue.value = `${currentScale}%`;
+    scaleControlValue.setAttribute('value', `${currentScale}%`);
   }
 });
 
@@ -207,6 +211,13 @@ function updateEffect(effect) {
 effectsList.addEventListener('change', (evt) => {
   updateEffect(evt.target.value);
 });
+
+const onMessageEscKeydown = (evt) => {
+  if (isEsc(evt)) {
+    evt.stopPropagation();
+  }
+};
+
 
 const setUserFormSubmit = (onSuccess) => {
   uploadForm.addEventListener('submit', (evt) => {

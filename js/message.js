@@ -9,7 +9,7 @@ function hideMessage() {
   if (messageElement) {
     messageElement.remove();
   }
-  document.removeEventListener('keydown', onDocumentKeydown);
+  document.removeEventListener('keydown', onDocumentKeydown, true);
   document.removeEventListener('click', onBodyClick);
 }
 
